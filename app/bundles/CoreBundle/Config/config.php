@@ -36,6 +36,10 @@ return [
                 'path'       => '/mtc.js',
                 'controller' => 'Mautic\CoreBundle\Controller\JsController::indexAction',
             ],
+            'mautic_core_gen_config' => [
+                'path'       => '/gen_config',
+                'controller' => 'Mautic\CoreBundle\Controller\DefaultController::genConfigAction',
+            ],
             'mautic_base_index' => [
                 'path'       => '/',
                 'controller' => 'Mautic\CoreBundle\Controller\DefaultController::indexAction',

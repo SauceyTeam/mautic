@@ -76,4 +76,67 @@ class DefaultController extends CommonController
             ]
         );
     }
+
+    public function genConfigAction(Request $request): \Symfony\Component\HttpFoundation\Response
+    {
+        $host = $_SERVER["HTTP_HOST"];
+        if (strpos($host, ':') !== false) {
+            $host = substr($host, 0, strpos($host, ':'));
+        }
+
+        $tenant = preg_match('/^([a-zA-Z0-9]+)-mt\./', $host, $matches) ? $matches[1] : null;
+        
+        if (!$tenant) {
+            return new \Symfony\Component\HttpFoundation\JsonResponse(['error' => 'No tenant found in host'], 400);
+        }
+
+        $root = realpath(__DIR__.'/../../../../..');
+        $projectRoot = $root;
+
+        // Get main DB credentials from env vars
+        $mainDbHost = getenv('MAUTIC_DB_HOST');
+        $mainDbPort = getenv('MAUTIC_DB_PORT') ?: 3306;
+        $mainDbUser = getenv('MAUTIC_DB_USER');
+        $mainDbPassword = getenv('MAUTIC_DB_PASSWORD');
+
+        $dsn = "mysql:host=$mainDbHost;port=$mainDbPort;dbname=mautic_main;charset=utf8mb4";
+        try {
+            $pdo = new \PDO($dsn, $mainDbUser, $mainDbPassword, [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            ]);
+            $stmt = $pdo->prepare('SELECT * FROM tenants WHERE url = ? LIMIT 1');
+            $stmt->execute([$host]);
+            error_log($host);
+            $tenantRow = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if ($tenantRow) {
+                $template = file_get_contents(__DIR__.'/../../../config/config_template.php');
+                // Generate a random secret key
+                $secretKey = bin2hex(random_bytes(32));
+                $replacements = [
+                    '{{db_host}}' => $mainDbHost,
+                    '{{db_port}}' => $mainDbPort,
+                    '{{db_name}}' => $tenantRow['db_name'],
+                    '{{db_user}}' => $tenantRow['username'],
+                    '{{db_password}}' => $tenantRow['password'],
+                    '{{secret_key}}' => $secretKey,
+                    '{{site_url}}' => $_SERVER["HTTP_HOST"],
+                ];
+                $config = str_replace(array_keys($replacements), array_values($replacements), $template);
+                $configPath = $projectRoot.'/config/local-'.$tenant.'.php';
+                file_put_contents($configPath, $config);
+                
+                return new \Symfony\Component\HttpFoundation\JsonResponse([
+                    'success' => true,
+                    'message' => 'Config regenerated successfully',
+                    'tenant' => $tenant,
+                    'config_path' => $configPath
+                ]);
+            } else {
+                return new \Symfony\Component\HttpFoundation\JsonResponse(['error' => 'No tenant found for host: ' . $host], 404);
+            }
+        } catch (\Exception $e) {
+            return new \Symfony\Component\HttpFoundation\JsonResponse(['error' => 'Error generating config: ' . $e->getMessage()], 500);
+        }
+    }
 }
