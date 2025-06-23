@@ -1,7 +1,7 @@
 FROM php:8.3-apache AS builder
 
 # Copy everything from common for building
-COPY ./build-config/common/ /common/
+COPY ./.build-config/common/ /common/
 
 # Install PHP extensions
 RUN apt-get update \
