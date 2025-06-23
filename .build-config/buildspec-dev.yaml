@@ -30,11 +30,14 @@ phases:
       - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       - echo Update kubeconfig...
       - aws eks update-kubeconfig --name ${EKS_NAME} --region ${REGION} --role-arn arn:aws:iam::588699980324:role/DevelopmentEksCodeBuildkubectlRole
+      - echo Enabling Docker BuildKit...
+      - export DOCKER_BUILDKIT=1
+      - export COMPOSE_DOCKER_CLI_BUILD=1
 
   build:
     commands:
       - echo Building Mautic Docker image...
-      - docker build -t $REPOSITORY_URI:$IMAGE_TAG -f .build-config/Dockerfile .
+      - DOCKER_BUILDKIT=1 docker build -t $REPOSITORY_URI:$IMAGE_TAG -f .build-config/Dockerfile .
 
   post_build:
     commands:
