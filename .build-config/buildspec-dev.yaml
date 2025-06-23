@@ -15,6 +15,7 @@ env:
 phases:
   install:
     commands:
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo Logging to AWS ECR...
       - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com
       - echo Installing kubectl...
@@ -32,11 +33,11 @@ phases:
   build:
     commands:
       - echo Building Mautic Docker image...
-      - docker build -t $REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION -f .build-config/Dockerfile .
+      - docker build -t $REPOSITORY_URI:$COMMIT_HASH -f .build-config/Dockerfile .
 
   post_build:
     commands:
       - echo Pushing ECR...
-      - docker push $REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker push $REPOSITORY_URI:$COMMIT_HASH
       - echo Rollout new version
-      - kubectl set image -n saucey deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$REPOSITORY_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - kubectl set image -n saucey deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$REPOSITORY_URI:$COMMIT_HASH
