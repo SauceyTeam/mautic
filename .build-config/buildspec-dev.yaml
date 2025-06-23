@@ -27,7 +27,7 @@ phases:
       - echo Logging into docker
       - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
       - echo Update kubeconfig...
-      - aws eks update-kubeconfig --name ${EKS_NAME} --region ${REGION} --role-arn arn:aws:iam::588699980324:role/DevelopmentEksCodeBuls .build-config/buildspec-dev.yamlildkubectlRole
+      - aws eks update-kubeconfig --name ${EKS_NAME} --region ${REGION} --role-arn arn:aws:iam::588699980324:role/DevelopmentEksCodeBuls .build-config/buildspec-dev.yaml
 
   build:
     commands:
