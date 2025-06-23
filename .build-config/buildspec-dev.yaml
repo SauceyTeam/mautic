@@ -8,11 +8,13 @@ env:
 phases:
   install:
     commands:
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - echo Logging to AWS ECR...
       - REGION=us-west-2
       - AWS_ACCOUNTID=588699980324
-      - ECR_NAME=mautic/development
+      - ECR_NAME=mantic/development
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - COMMIT_MESSAGE=$CODEBUILD_GIT_MESSAGE
+      - echo Commit Message------ $COMMIT_MESSAGE
+      - IMAGE_TAG=development-${COMMIT_HASH:=latest}
       - EKS_NAME=development-3
       - DEPLOYMENT_NAME=mautic
       - REPOSITORY_URI=${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com/${ECR_NAME}
@@ -32,11 +34,11 @@ phases:
   build:
     commands:
       - echo Building Mautic Docker image...
-      - docker build -t $REPOSITORY_URI:$COMMIT_HASH -f .build-config/Dockerfile .
+      - docker build -t $REPOSITORY_URI:$IMAGE_TAG -f .build-config/Dockerfile .
 
   post_build:
     commands:
       - echo Pushing ECR...
-      - docker push $REPOSITORY_URI:$COMMIT_HASH
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Rollout new version
-      - kubectl set image -n saucey deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$REPOSITORY_URI:$COMMIT_HASH
+      - kubectl set image -n saucey deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$REPOSITORY_URI:$IMAGE_TAG
