@@ -1,13 +1,6 @@
 version: 0.2
 
 env:
-  variables:
-    REGION: "us-west-2"
-    AWS_ACCOUNTID: "588699980324"
-    ECR_NAME: "mautic/development"
-    EKS_NAME: "development-3"
-    DEPLOYMENT_NAME: "mautic"
-    REPOSITORY_URI: "${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com/${ECR_NAME}"
   secrets-manager:
     DOCKER_USERNAME: "codebuild-env:DOCKER_USERNAME"
     DOCKER_PASSWORD: "codebuild-env:DOCKER_PASSWORD"
@@ -17,6 +10,12 @@ phases:
     commands:
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo Logging to AWS ECR...
+      - REGION=us-west-2
+      - AWS_ACCOUNTID=588699980324
+      - ECR_NAME=mautic/development
+      - EKS_NAME=development-3
+      - DEPLOYMENT_NAME=mautic
+      - REPOSITORY_URI=${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com/${ECR_NAME}
       - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com
       - echo Installing kubectl...
       - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
