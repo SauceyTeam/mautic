@@ -84,7 +84,7 @@ class DefaultController extends CommonController
             $host = substr($host, 0, strpos($host, ':'));
         }
 
-        $tenant = preg_match('/^([a-zA-Z0-9]+)-mt\./', $host, $matches) ? $matches[1] : null;
+        $tenant = preg_match('/^([a-zA-Z0-9]+)\./', $host, $matches) ? $matches[1] : null;
         
         if (!$tenant) {
             return new \Symfony\Component\HttpFoundation\JsonResponse(['error' => 'No tenant found in host'], 400);

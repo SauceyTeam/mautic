@@ -10,7 +10,7 @@ if (strpos($host, ':') !== false) {
     $host = substr($host, 0, strpos($host, ':'));
 }
 
-$tenant = preg_match('/^([a-zA-Z0-9]+)-mt\./', $host, $matches) ? $matches[1] : null;
+$tenant = preg_match('/^([a-zA-Z0-9]+)\./', $host, $matches) ? $matches[1] : null;
 $file = 'local.php';
 
 if($tenant) {
