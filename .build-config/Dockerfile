@@ -8,7 +8,7 @@ COPY . /opt/mautic
 WORKDIR /opt/mautic
 RUN COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_PROCESS_TIMEOUT=10000 composer install --no-interaction --prefer-dist --optimize-autoloader
 
-FROM php:8.3-apache
+FROM 588699980324.dkr.ecr.us-west-2.amazonaws.com/php:8.3-apache
 
 # Setting PHP properties
 ENV PHP_INI_VALUE_DATE_TIMEZONE='UTC' \
