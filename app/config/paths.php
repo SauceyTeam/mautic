@@ -4,13 +4,22 @@
 $root        = $root ?? realpath(__DIR__.'/..');
 $projectRoot = $projectRoot ?? Mautic\CoreBundle\Loader\ParameterLoader::getProjectDirByRoot($root);
 
+$host = null;
+$tenant = null;
 
-$host = $_SERVER["HTTP_HOST"];
-if (strpos($host, ':') !== false) {
-    $host = substr($host, 0, strpos($host, ':'));
+// Check if running from CLI
+if (php_sapi_name() === 'cli') {
+    // Get tenant from environment variable set in console-application.php
+    $tenant = $_ENV['TENANT'] ?? $_SERVER['TENANT'] ?? getenv('TENANT');
+} else {
+    // Web request - extract from HTTP_HOST
+    $host = $_SERVER["HTTP_HOST"];
+    if (strpos($host, ':') !== false) {
+        $host = substr($host, 0, strpos($host, ':'));
+    }
+    $tenant = preg_match('/^([a-zA-Z0-9]+)\./', $host, $matches) ? $matches[1] : null;
 }
 
-$tenant = preg_match('/^([a-zA-Z0-9]+)\./', $host, $matches) ? $matches[1] : null;
 $file = 'local.php';
 
 if($tenant) {

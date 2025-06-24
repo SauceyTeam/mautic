@@ -21,6 +21,7 @@ require_once __DIR__.'/../autoload.php';
 
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\ErrorHandler\Debug;
 
 $input = new ArgvInput();
@@ -32,6 +33,11 @@ if (null !== $env = $input->getParameterOption(['--env', '-e'], null, true)) {
 if ($input->hasParameterOption('--no-debug', true)) {
     putenv('APP_DEBUG='.$_SERVER['APP_DEBUG'] = $_ENV['APP_DEBUG'] = '0');
 }
+
+if (null !== $tenant = $input->getParameterOption(['--tenant'], null, true)) {
+    putenv('TENANT='.$_SERVER['TENANT'] = $_ENV['TENANT'] = $tenant);
+}
+
 
 require dirname(__DIR__).'/app/config/bootstrap.php';
 
@@ -47,5 +53,10 @@ $kernel      = new AppKernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
 $application = new Application($kernel);
 $application->setName('Mautic');
 $application->setVersion($kernel->getVersion().' - app/'.$kernel->getEnvironment().($kernel->isDebug() ? '/debug' : ''));
+
+// Add global tenant option to all commands
+$application->getDefinition()->addOption(
+    new InputOption('--tenant', null, InputOption::VALUE_REQUIRED, 'Specify the tenant to use for this command')
+);
 
 return $application;
