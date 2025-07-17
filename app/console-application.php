@@ -96,9 +96,9 @@ if (null === $tenant) {
             exit(1);
         }
     } else {
-        echo "No tenant specified and main database credentials not available.\n";
-        echo "Please either specify a tenant with --tenant or set MAUTIC_DB_HOST, MAUTIC_DB_USER, and MAUTIC_DB_PASSWORD environment variables.\n";
-        exit(1);
+        // echo "No tenant specified and main database credentials not available.\n";
+        // echo "Please either specify a tenant with --tenant or set MAUTIC_DB_HOST, MAUTIC_DB_USER, and MAUTIC_DB_PASSWORD environment variables.\n";
+        // exit(1);
     }
 } else {
     // Specific tenant provided, set environment variable
