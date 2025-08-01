@@ -13,4 +13,19 @@ $parameters = array(
         'secret_key' => '{{secret_key}}',
         'site_url' => '{{site_url}}',
         'api_enabled' => 1,
+        'mailer_dsn' => 'smtp://AKIAYSEKA2ISOSTHTFPT:BH8ssmWv2KWTWKrzHpxAN7sN27tgXcwLQMAhz2CT41zq@email-smtp.us-west-2.amazonaws.com:587',
+        'mailer_from_name' => '{{mailer_from_name}}',
+        'mailer_from_email' => '{{mailer_from_email}}',
+        'mailer_reply_to_email' => '{{mailer_reply_to_email}}',
+        'mailer_return_path' => null,
+        'mailer_address_length_limit' => 320,
+        'mailer_append_tracking_pixel' => 1,
+        'mailer_convert_embed_images' => 0,
+        'mailer_custom_headers' => array(
+
+        ),
+        'unsubscribe_text' => '<a href="|URL|">Unsubscribe</a> to no longer receive emails from us.',
+        'webview_text' => '<a href="|URL|">Having trouble reading this email? Click here.</a>',
+        'unsubscribe_message' => 'We are sorry to see you go! |EMAIL| will no longer receive emails from us. If this was by mistake, <a href="|URL|">click here to re-subscribe</a>.',
+        'resubscribe_message' => '|EMAIL| has been re-subscribed. If this was by mistake, <a href="|URL|">click here to unsubscribe</a>.',
 );

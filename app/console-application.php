@@ -68,20 +68,11 @@ if (null === $tenant) {
                     putenv('TENANT='.$_SERVER['TENANT'] = $_ENV['TENANT'] = $tenantId);
                     
                     // Run the command for this tenant
-                    $command = implode(' ', array_slice($argv, 1)); // Remove the script name
-                    $output = [];
-                    $returnCode = 0;
-                    
-                    exec("php " . __FILE__ . " --tenant=" . $tenantId . " " . $command, $output, $returnCode);
-                    
-                    // Display output
-                    foreach ($output as $line) {
-                        echo $line . "\n";
-                    }
-                    
-                    if ($returnCode !== 0) {
-                        echo "Command failed for tenant " . $tenantData['url'] . " (ID: " . $tenantId . ") with return code: " . $returnCode . "\n";
-                    }
+                    $command = implode(' ', array_slice($argv, 1)); // Remove the script name];
+
+                    $pipes = [];
+                    $process = proc_open("/var/www/html/bin/console --tenant=" . $tenantId . " " . $command, [STDIN, STDOUT, STDERR], $pipes);
+                    proc_close($process);
                 }
                 
                 echo "\n=== Completed running command for all tenants ===\n";
@@ -96,9 +87,7 @@ if (null === $tenant) {
             exit(1);
         }
     } else {
-        // echo "No tenant specified and main database credentials not available.\n";
-        // echo "Please either specify a tenant with --tenant or set MAUTIC_DB_HOST, MAUTIC_DB_USER, and MAUTIC_DB_PASSWORD environment variables.\n";
-        // exit(1);
+        // this happens when we're buildling in CI, we can just move on
     }
 } else {
     // Specific tenant provided, set environment variable
