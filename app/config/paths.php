@@ -42,49 +42,16 @@ if($tenant) {
             error_log($host);
             $tenantRow = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($tenantRow) {
-                // Generate a random secret key
-                $secretKey = bin2hex(random_bytes(32));
                 error_log('Tenant row: ' . json_encode($tenantRow));
                 
-                // Load the config template as a PHP file
-                $templatePath = __DIR__.'/config_template.php';
+                // Use the shared config generator helper
+                require_once __DIR__.'/../bundles/CoreBundle/Helper/ConfigGeneratorHelper.php';
+                $result = \Mautic\CoreBundle\Helper\ConfigGeneratorHelper::generateTenantConfig($tenant, $_SERVER["HTTP_HOST"], $tenantRow, $projectRoot);
                 
-                // Use output buffering to capture any output and prevent it from being sent
-                ob_start();
-                include $templatePath;
-                ob_end_clean();
-                
-                // Now $parameters should be available as a real PHP array
-                if (isset($parameters) && is_array($parameters)) {
-                    // Update specific parameters
-                    $parameters['db_host'] = $mainDbHost;
-                    $parameters['db_port'] = $mainDbPort;
-                    $parameters['db_name'] = $tenantRow['db_name'];
-                    $parameters['db_user'] = $tenantRow['username'];
-                    $parameters['db_password'] = $tenantRow['password'];
-                    $parameters['secret_key'] = $secretKey;
-                    $parameters['site_url'] = 'http://' . $_SERVER["HTTP_HOST"];
-                    
-                    // Generate the new config content
-                    $configContent = "<?php\n\$parameters = array(\n";
-                    foreach ($parameters as $key => $value) {
-                        if ($value === null) {
-                            $configContent .= "        '$key' => null,\n";
-                        } elseif (is_int($value)) {
-                            $configContent .= "        '$key' => $value,\n";
-                        } elseif (is_array($value)) {
-                            $configContent .= "        '$key' => array(\n\n        ),\n";
-                        } else {
-                            $configContent .= "        '$key' => '$value',\n";
-                        }
-                    }
-                    $configContent .= ");";
-                    
-                    error_log($projectRoot.'/config/local-'.$tenant.'.php');
-                    file_put_contents($projectRoot.'/config/local-'.$tenant.'.php', $configContent);
+                if ($result['success']) {
                     $file = 'local-'.$tenant.'.php';
                 } else {
-                    error_log('Could not load config template parameters array');
+                    error_log('Could not generate config: ' . $result['error']);
                 }
 
             } else {

@@ -4,6 +4,7 @@ namespace Mautic\CoreBundle\Controller;
 
 use Mautic\CoreBundle\CoreEvents;
 use Mautic\CoreBundle\Event\GlobalSearchEvent;
+use Mautic\CoreBundle\Helper\ConfigGeneratorHelper;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -110,28 +111,18 @@ class DefaultController extends CommonController
             $tenantRow = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if ($tenantRow) {
-                $template = file_get_contents(__DIR__.'/../../../config/config_template.php');
-                // Generate a random secret key
-                $secretKey = bin2hex(random_bytes(32));
-                $replacements = [
-                    '{{db_host}}' => $mainDbHost,
-                    '{{db_port}}' => $mainDbPort,
-                    '{{db_name}}' => $tenantRow['db_name'],
-                    '{{db_user}}' => $tenantRow['username'],
-                    '{{db_password}}' => $tenantRow['password'],
-                    '{{secret_key}}' => $secretKey,
-                    '{{site_url}}' => $_SERVER["HTTP_HOST"],
-                ];
-                $config = str_replace(array_keys($replacements), array_values($replacements), $template);
-                $configPath = $projectRoot.'/config/local-'.$tenant.'.php';
-                file_put_contents($configPath, $config);
+                $result = ConfigGeneratorHelper::generateTenantConfig($tenant, $_SERVER["HTTP_HOST"], $tenantRow, $projectRoot);
                 
-                return new \Symfony\Component\HttpFoundation\JsonResponse([
-                    'success' => true,
-                    'message' => 'Config regenerated successfully',
-                    'tenant' => $tenant,
-                    'config_path' => $configPath
-                ]);
+                if ($result['success']) {
+                    return new \Symfony\Component\HttpFoundation\JsonResponse([
+                        'success' => true,
+                        'message' => 'Config regenerated successfully',
+                        'tenant' => $tenant,
+                        'config_path' => $result['config_path']
+                    ]);
+                } else {
+                    return new \Symfony\Component\HttpFoundation\JsonResponse(['error' => $result['error']], 500);
+                }
             } else {
                 return new \Symfony\Component\HttpFoundation\JsonResponse(['error' => 'No tenant found for host: ' . $host], 404);
             }
