@@ -40,7 +40,7 @@ class ConfigGeneratorHelper
                 }
             } else {
                 // Load the config template as a PHP file
-                $templatePath = '/var/www/html/config/app/config_template.php';
+                $templatePath = '/var/www/html/app/config/config_template.php';
                 
                 // Use output buffering to capture any output and prevent it from being sent
                 ob_start();
