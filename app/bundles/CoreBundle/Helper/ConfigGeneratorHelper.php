@@ -23,7 +23,7 @@ class ConfigGeneratorHelper
             $mainDbHost = getenv('MAUTIC_DB_HOST');
             $mainDbPort = getenv('MAUTIC_DB_PORT') ?: 3306;
             
-            $configPath = $projectRoot . '/config/local-' . $tenant . '.php';
+            $configPath = '/var/www/html/config/local-' . $tenant . '.php';
             
             // Check if tenant config file exists
             if (file_exists($configPath)) {
@@ -40,7 +40,7 @@ class ConfigGeneratorHelper
                 }
             } else {
                 // Load the config template as a PHP file
-                $templatePath = $projectRoot . '/app/config/config_template.php';
+                $templatePath = '/var/www/html/config/config_template.php';
                 
                 // Use output buffering to capture any output and prevent it from being sent
                 ob_start();
