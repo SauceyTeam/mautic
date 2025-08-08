@@ -18,6 +18,7 @@ use Mautic\EmailBundle\Entity\Email;
 use Mautic\EmailBundle\Helper\MailHelper;
 use Mautic\EmailBundle\Model\EmailModel;
 use Mautic\EmailBundle\MonitoredEmail\Processor\Reply;
+use Mautic\LeadBundle\Helper\FakeContactHelper;
 use Mautic\LeadBundle\Controller\LeadAccessTrait;
 use Mautic\LeadBundle\Entity\Lead;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -221,6 +222,59 @@ class EmailApiController extends CommonApiController
         return $this->handleView(
             $this->view(['success' => true], Response::HTTP_CREATED)
         );
+    }
+
+    /**
+     * Sends a test/example email to an arbitrary recipient email address.
+     * Does not require the email to be published.
+     *
+     * Expects POST body to contain 'email' with the recipient address.
+     */
+    public function sendExampleAction(Request $request, $id, FakeContactHelper $fakeContactHelper)
+    {
+        $entity = $this->model->getEntity($id);
+
+        if (null === $entity) {
+            return $this->notFound();
+        }
+
+        if (!$this->checkEntityAccess($entity)) {
+            return $this->accessDenied();
+        }
+
+        $recipient = $request->request->get('email');
+        if (empty($recipient) || !is_string($recipient)) {
+            return $this->handleView(
+                $this->view([
+                    'success' => 0,
+                    'error'   => 'Missing or invalid "email" parameter',
+                ], Response::HTTP_BAD_REQUEST)
+            );
+        }
+
+        // Prefix subject to mark as test email similar to UI behavior
+        $entity->setSubject(sprintf('%s %s', '[TEST]', $entity->getSubject()));
+
+        // Use a fake contact with a primary company to render tokens
+        $leadFields = $fakeContactHelper->prepareFakeContactWithPrimaryCompany();
+
+        $users = [[
+            'id'        => '',
+            'firstname' => '',
+            'lastname'  => '',
+            'email'     => $recipient,
+        ]];
+
+        $errors = $this->model->sendSampleEmailToUser($entity, $users, $leadFields, [], [], false);
+
+        $response = [
+            'success' => empty($errors),
+        ];
+        if (!empty($errors)) {
+            $response['failed'] = $errors;
+        }
+
+        return $this->handleView($this->view($response, Response::HTTP_OK));
     }
 
     protected function prepareParametersFromRequest(FormInterface $form, array &$params, object $entity = null, array $masks = [], array $fields = []): void
