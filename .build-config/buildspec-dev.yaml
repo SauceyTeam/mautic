@@ -17,6 +17,7 @@ phases:
       - IMAGE_TAG=development-${COMMIT_HASH:=latest}
       - EKS_NAME=development-3
       - DEPLOYMENT_NAME=mautic
+      - CRON_DEPLOYMENT_NAME=mautic-cron
       - REPOSITORY_URI=${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com/${ECR_NAME}
       - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com
       - echo Installing kubectl...
@@ -45,3 +46,4 @@ phases:
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Rollout new version
       - kubectl set image -n saucey deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$REPOSITORY_URI:$IMAGE_TAG
+      - kubectl set image -n saucey deployment/$CRON_DEPLOYMENT_NAME $CRON_DEPLOYMENT_NAME=$REPOSITORY_URI:$IMAGE_TAG
