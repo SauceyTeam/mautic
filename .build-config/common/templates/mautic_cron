@@ -11,6 +11,9 @@ BASH_ENV=/tmp/cron.env
 # Trigger Update - every 15 min starting at 10 past the hour
 10,25,40,55 * * * * php /var/www/html/bin/console mautic:campaigns:trigger 2>&1 | tee /tmp/stdout
 
+# Trigger Braodcast sending - evey 15 minutes starting at 5 past the hour
+5,20,35,50 * * * * php /var/www/html/bin/console mautic:broadcasts:send 2>&1 | tee /tmp/stdout
+
 # Monitored E-mail - every 1 min
 #* * * * * php /var/www/html/bin/console mautic:email:fetch 2>&1 | tee /tmp/stdout
 
