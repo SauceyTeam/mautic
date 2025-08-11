@@ -37,16 +37,15 @@ if($tenant) {
             $pdo = new PDO($dsn, $mainDbUser, $mainDbPassword, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
-            $stmt = $pdo->prepare('SELECT * FROM tenants WHERE url = ? LIMIT 1');
-            $stmt->execute([$host]);
-            error_log($host);
+            $stmt = $pdo->prepare('SELECT * FROM tenants WHERE url = ? OR tenant_id = ? LIMIT 1');
+            $stmt->execute([$host,$tenant]);
             $tenantRow = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($tenantRow) {
                 error_log('Tenant row: ' . json_encode($tenantRow));
                 
                 // Use the shared config generator helper
                 require_once __DIR__.'/../bundles/CoreBundle/Helper/ConfigGeneratorHelper.php';
-                $result = \Mautic\CoreBundle\Helper\ConfigGeneratorHelper::generateTenantConfig($tenant, $_SERVER["HTTP_HOST"], $tenantRow, $projectRoot);
+                $result = \Mautic\CoreBundle\Helper\ConfigGeneratorHelper::generateTenantConfig($tenant, $tenantRow['url'], $tenantRow, $projectRoot);
                 
                 if ($result['success']) {
                     $file = 'local-'.$tenant.'.php';
