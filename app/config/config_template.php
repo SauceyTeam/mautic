@@ -28,4 +28,8 @@ $parameters = array(
         'webview_text' => '<a href="|URL|">Having trouble reading this email? Click here.</a>',
         'unsubscribe_message' => 'We are sorry to see you go! |EMAIL| will no longer receive emails from us. If this was by mistake, <a href="|URL|">click here to re-subscribe</a>.',
         'resubscribe_message' => '|EMAIL| has been re-subscribed. If this was by mistake, <a href="|URL|">click here to unsubscribe</a>.',
+        'cors_restrict_domains' => 0,
+        'cors_valid_domains' => array(
+        
+        )
 );
