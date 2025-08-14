@@ -40,9 +40,7 @@ if($tenant) {
             $stmt = $pdo->prepare('SELECT * FROM tenants WHERE url = ? OR tenant_id = ? LIMIT 1');
             $stmt->execute([$host,$tenant]);
             $tenantRow = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($tenantRow) {
-                error_log('Tenant row: ' . json_encode($tenantRow));
-                
+            if ($tenantRow) {                
                 // Use the shared config generator helper
                 require_once __DIR__.'/../bundles/CoreBundle/Helper/ConfigGeneratorHelper.php';
                 $result = \Mautic\CoreBundle\Helper\ConfigGeneratorHelper::generateTenantConfig($tenant, $tenantRow['url'], $tenantRow, $projectRoot);
