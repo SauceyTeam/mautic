@@ -1,0 +1,49 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    DOCKER_USERNAME: "codebuild-env:DOCKER_USERNAME"
+    DOCKER_PASSWORD: "codebuild-env:DOCKER_PASSWORD"
+
+phases:
+  install:
+    commands:
+      - REGION=us-west-2
+      - AWS_ACCOUNTID=588699980324
+      - ECR_NAME=mautic/development
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - COMMIT_MESSAGE=$CODEBUILD_GIT_MESSAGE
+      - echo Commit Message------ $COMMIT_MESSAGE
+      - IMAGE_TAG=development-${COMMIT_HASH:=latest}
+      - EKS_NAME=production-direct
+      - DEPLOYMENT_NAME=mautic
+      - CRON_DEPLOYMENT_NAME=mautic-cron
+      - REPOSITORY_URI=${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com/${ECR_NAME}
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com
+      - echo Installing kubectl...
+      - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      - chmod +x kubectl
+      - mv ./kubectl /usr/local/bin/kubectl
+
+  pre_build:
+    commands:
+      - echo Logging into docker
+      - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+      - echo Update kubeconfig...
+      - aws eks update-kubeconfig --name ${EKS_NAME} --region ${REGION} --role-arn arn:aws:iam::588699980324:role/DevelopmentEksCodeBuildkubectlRole
+      - echo Enabling Docker BuildKit...
+      - export DOCKER_BUILDKIT=1
+      - export COMPOSE_DOCKER_CLI_BUILD=1
+
+  build:
+    commands:
+      - echo Building Mautic Docker image...
+      - DOCKER_BUILDKIT=1 docker build -t $REPOSITORY_URI:$IMAGE_TAG -f .build-config/Dockerfile .
+
+  post_build:
+    commands:
+      - echo Pushing ECR...
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Rollout new version
+      - kubectl set image -n saucey deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$REPOSITORY_URI:$IMAGE_TAG
+      - kubectl set image -n saucey deployment/$CRON_DEPLOYMENT_NAME $CRON_DEPLOYMENT_NAME=$REPOSITORY_URI:$IMAGE_TAG
