@@ -15,7 +15,7 @@ phases:
       - COMMIT_MESSAGE=$CODEBUILD_GIT_MESSAGE
       - echo Commit Message------ $COMMIT_MESSAGE
       - IMAGE_TAG=development-${COMMIT_HASH:=latest}
-      - EKS_NAME=development-3
+      - EKS_NAME=development-4
       - DEPLOYMENT_NAME=mautic
       - CRON_DEPLOYMENT_NAME=mautic-cron
       - REPOSITORY_URI=${AWS_ACCOUNTID}.dkr.ecr.${REGION}.amazonaws.com/${ECR_NAME}
