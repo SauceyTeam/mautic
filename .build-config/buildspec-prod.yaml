@@ -10,11 +10,11 @@ phases:
     commands:
       - REGION=us-west-2
       - AWS_ACCOUNTID=588699980324
-      - ECR_NAME=mautic/development
+      - ECR_NAME=mautic/production
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - COMMIT_MESSAGE=$CODEBUILD_GIT_MESSAGE
       - echo Commit Message------ $COMMIT_MESSAGE
-      - IMAGE_TAG=development-${COMMIT_HASH:=latest}
+      - IMAGE_TAG=production-${COMMIT_HASH:=latest}
       - EKS_NAME=production-direct
       - DEPLOYMENT_NAME=mautic
       - CRON_DEPLOYMENT_NAME=mautic-cron
