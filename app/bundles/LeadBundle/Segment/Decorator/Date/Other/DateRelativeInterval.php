@@ -63,7 +63,14 @@ class DateRelativeInterval implements FilterDecoratorInterface
      */
     public function getParameterValue(ContactSegmentFilterCrate $contactSegmentFilterCrate): mixed
     {
-        $date = $this->dateOptionParameters->getDefaultDate();
+        // For relative intervals like "-5 minutes", we should use current time, not midnight
+        if ($this->shouldUseCurrentTime($this->originalValue)) {
+            $timezone = $this->dateOptionParameters->hasTimePart() ? 'UTC' : 'UTC';
+            $date = new \Mautic\CoreBundle\Helper\DateTimeHelper(new \DateTime('now', new \DateTimeZone($timezone)), null, $timezone);
+        } else {
+            $date = $this->dateOptionParameters->getDefaultDate();
+        }
+        
         $date->modify($this->originalValue);
 
         $operator = $this->getOperator($contactSegmentFilterCrate);
@@ -73,6 +80,23 @@ class DateRelativeInterval implements FilterDecoratorInterface
         }
 
         return $date->toLocalString($format);
+    }
+    
+    /**
+     * Determine if we should use current time instead of midnight for relative intervals
+     */
+    private function shouldUseCurrentTime(string $interval): bool
+    {
+        // Check if the interval contains time units (minutes, hours, seconds)
+        $timeUnits = ['minute', 'hour', 'second'];
+        
+        foreach ($timeUnits as $unit) {
+            if (str_contains(strtolower($interval), $unit)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     public function getQueryType(ContactSegmentFilterCrate $contactSegmentFilterCrate): string
