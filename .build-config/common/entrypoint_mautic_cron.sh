@@ -2,7 +2,9 @@
 
 mkdir -p /opt/mautic/cron
 
-if [ ! -f /opt/mautic/cron/mautic  ]; then
+if [ "$DEPLOYMENT_ENV" = "development" ]; then
+  cp -p /templates/mautic_cron_dev /opt/mautic/cron/mautic
+else
   cp -p /templates/mautic_cron /opt/mautic/cron/mautic
 fi
 
